@@ -1,0 +1,100 @@
+1. 创建对象方式
+
+使用new关键字
+使用Class类的newInstance方法
+使用Constructor类的newInstance方法
+使用clone方法
+使用反序列化
+
+2. Integer: Integer i = 1 vs i = Integer.valueOf(1) vs i = new Integer(1)
+
+Integer i = 1 <=> Integer i = Integer.valueOf(1): 先检查缓存池, 没有再new
+Integer i = new Integer(1): 直接new
+Integer缓存池: -128 - 127, 可通过JVM参数调整范围
+
+3. String: String s = "abc" vs s = new String("abc")
+
+new String("abc"): 创建两个对象
+"abc": 创建一个对象
+
+4. StringBuffer vs StringBuilder
+
+StringBuffer线程安全
+StringBuilder线程不安全
+
+5. 类继承级别
+
+public：都可以进行调用
+private：只有当前类可以调用
+protected：当前类, 子类及同package的类可以调用
+friendly：当前类及同package的类可以调用
+
+6. 内部类
+
+内部成员类: 位于外部类成员位置的类, 可以使用外部类中所有成员变量和方法 (包括private)
+局部内部类: 位于一个方法或定义域中的类, 只能在定义域内使用, 访问局部变量要加final修饰
+静态内部类: 用static修饰的内部类, 不能访问外部类的非static成员, 编译后不会持有外部类对象的引用
+匿名内部类: 继承父类或实现接口的子类对象
+
+7. 接口 vs 抽象类
+
+接口用interface, 抽象类用abstract class
+接口用implements, 抽象类用extends
+只能继承一个类, 但能实现多个接口
+接口的成员都是public, 接口的字段默认都是static和final的
+
+8. == vs equals
+
+对于基本类型，== 判断两个值是否相等，基本类型没有 equals() 方法。
+对于引用类型，== 判断两个变量是否引用同一个对象，而 equals() 判断引用的对象是否等价。
+
+9. equals vs hashcode()
+
+hashCode() 返回散列值，而 equals() 是用来判断两个对象是否等价。
+等价的两个对象散列值一定相同，但是散列值相同的两个对象不一定等价。
+在覆盖 equals() 方法时应当总是覆盖 hashCode() 方法，保证等价的两个对象散列值也相等。
+
+10. final vs finally vs finalize
+
+final: 类: 不能继承; 方法: 不能重写; 变量: 不能修改
+finally: 与try catch一同使用
+finalize: 对象回收时调用, 类似析构函数
+
+11. 类初始化顺序
+
+父类（静态变量、静态语句块）
+子类（静态变量、静态语句块）
+父类（实例变量、普通语句块）
+父类（构造函数）
+子类（实例变量、普通语句块）
+子类（构造函数）
+
+12. 反射
+
+获取class对象: someObject.getClass(), SomeClass.class, Class.forName(SomeClass)
+获取Constructor对象, Field对象和Method对象, 并进行操作
+
+13. 异常
+
+Exception: RuntimeException (IllegalArgumentException, IndexOutOfBoundException, ArithmeticException), IOException (SocketException, FileNotFoundException)
+Error: OutOfMemoryError, LinkageError, StackOverflowError
+受检异常: 可以用try catch捕获, e.g. IOException
+非受检异常: 不能用try catch捕获, e.g. RuntimeException
+
+14. throw vs throws 
+
+throws：用来声明一个方法可能产生的所有异常，可以跟多个异常类名
+throw：用来抛出一个具体的异常类型，用在方法体内，，由方法体内的语句处理
+
+15. 浅拷贝 vs 深拷贝
+
+浅拷贝: 拷贝对象和原始对象的引用类型引用同一个对象。
+深拷贝: 拷贝对象和原始对象的引用类型引用不同对象。实现clonable接口重写clone()方法。
+
+16. Comparable vs Comparator
+
+Comparable是类实现的接口，要重写compareTo()
+Comparator是带入sort()之类方法的参数，用来比较两个对象，要重写compare()
+a.compareTo(b): 1 -> a > b; 0 -> a == b; -1 -> a < b
+compare(a, b): 1 -> a > b; 0 -> a == b; -1 -> a < b
+

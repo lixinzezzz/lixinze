@@ -1,0 +1,193 @@
+1. Java线程状态
+
+new, runnable, blocked, waiting, timed waiting, terminated
+
+2. Java线程使用 Runnable vs Callable vs Thread
+
+Thread: 类
+Runnable: 接口
+Callable: 接口, 有返回值
+
+3. Synchronized vs ReentrantLock cyc P136
+
+a. 锁的实现: synchronized 是 JVM 实现的，而 ReentrantLock 是 JDK 实现的。
+b. 性能: 大致相同。
+c. 等待可中断: 当持有锁的线程长期不释放锁的时候，正在等待的线程可以选择放弃等待，改为处理其他事情。ReentrantLock 可中断，而 synchronized 不行。
+d. 公平锁: synchronized 中的锁是非公平的，ReentrantLock 默认情况下也是非公平的，但是也可以是公平的。
+e. 锁绑定多个条件: 一个 ReentrantLock 可以同时绑定多个 Condition 对象。
+
+4. ReentrantLock 防止死锁
+
+tryLock(long time, TimeUint unit)： 一段时间内没有获取锁，不是进入阻塞状态，而是返回一个错误
+tryLock：立即返回，获得锁返回true,没获得锁返回false
+lockInterruptibly：在锁上等待，直到获取锁，但是会响应中断，这个方法优先考虑响应中断，而不是响应锁的普通获取或重入获取。
+
+总结：lock 阻塞 (阻塞期间不能处理中断) tryLock 不阻塞 lockInterruptibly 阻塞可中断 (阻塞期间可以处理中断)
+
+
+5. Daemon
+
+当所有非守护线程结束时，程序也就终止，同时会杀死所有守护线程。
+使用 setDaemon() 方法将一个线程设置为守护线程。
+
+6. sleep
+
+Thread.sleep(millisec) 方法会休眠当前正在执行的线程，millisec 单位为毫秒。
+
+7. join
+
+在线程中调用另一个线程的 join() 方法，会将当前线程挂起，直到目标线程结束。
+
+8. wait notify notifyAll
+
+调用 wait() 使得线程等待某个条件满足，线程在等待时会被挂起，当其他线程的运行使得这个条件满足时，其它线程会调用 notify() 或者 notifyAll() 来唤醒挂起的线程。
+它们都属于 Object 的一部分，而不属于 Thread。
+
+9. await signal signalAll
+
+可以在 Condition 上调用 await() 方法使线程等待，其它线程调用 signal() 或 signalAll() 方法唤醒等待的线程。
+相比于 wait() 这种等待方式，await() 可以指定等待的条件，因此更加灵活。
+使用 Lock 来获取一个 Condition 对象。
+
+10. interrupt vs interrupted cyc P132
+
+11. wait vs sleep
+
+wait() 是 Object 的方法，而 sleep() 是 Thread 的静态方法；
+wait() 会释放锁，sleep() 不会。
+
+12. CountDownLatch
+
+用来控制一个线程等待多个线程。
+维护了一个计数器 cnt，每次调用 countDown() 方法会让计数器的值减 1，减到 0 的时候，那些因为调用 await() 方法而在等待的线程就会被唤醒。
+
+13. CyclicBarrier
+
+用来控制多个线程互相等待，只有当多个线程都到达时，这些线程才会继续执行。
+和 CountdownLatch 相似，都是通过维护计数器来实现的。线程执行 await() 方法之后计数器会减 1，并进行等待，直到计数器为 0，所有调用 await() 方法而在等待的线程才能继续执行。
+
+14. Semaphore
+
+Semaphore 类似于操作系统中的信号量，可以控制对互斥资源的访问线程数。
+
+15. Java内存模型 cyc P146
+
+16. 内存模型特性: 原子性, 可见性, 有序性 cyc P148
+
+17. CAS 和 ABA
+
+先进行操作，如果没有其它线程争用共享数据，那操作就成功了，否则采取补偿措施（不断地重试，直到成功为止）。
+CAS 指令需要有 3 个操作数，分别是内存地址 V、旧的预期值 A 和新值 B。当执行操作时，只有当 V 的值等于 A，才将 V 的值更新为 B。
+如果一个变量初次读取的时候是 A 值，它的值被改成了 B，后来又被改回为 A，那 CAS 操作就会误认为它从来没有被改变过。
+J.U.C 包提供了一个带有标记的原子引用类 AtomicStampedReference 来解决这个问题，它可以通过控制变量值的版本来保证 CAS 的正确性。
+
+18. AtomicInteger cyc P155
+
+19. 自旋锁
+
+让一个线程在请求一个共享数据的锁时执行忙循环（自旋）一段时间，如果在这段时间内能获得锁，就可以避免进入阻塞状态。
+
+20. 锁消除
+
+对于被检测出不可能存在竞争的共享数据的锁进行消除。
+
+21. 无锁 偏向锁 轻量级锁 重量级锁 及 锁升级 cyc P160
+
+偏向锁的思想是偏向于让第一个获取锁对象的线程，这个线程在之后获取该锁就不再需要进行同步操作，甚至连 CAS 操作也不再需要。
+轻量级锁是相对于传统的重量级锁而言，它使用 CAS 操作来避免重量级锁使用互斥量的开销。
+
+22. 线程池
+
+ThreadPoolExexutor
+Worker: 实现runnable，包裹线程用的；继承AQS，在执行任务时获取锁，任务完释放；
+    线程池调用shutdown()时会用tryLock()找到不在执行任务的线程并interrupt()它们；
+    继承AQS为的是实现不可重入的特性去得到线程现在的执行状态
+addWorker(): 增加线程
+runWorker(): 在循环中持续调用getTask()获取任务，任务为null则终止；主循环每次循环获取一个任务并处理
+getTask(): 获取任务，没有则等待；也用于处理timeout，没timeout则等待，timeout则返回null
+
+没有线程池的情况下，多次创建，销毁线程开销比较大。如果在开辟的线程执行完当前任务后执行接下来任务，复用已创建的线程，降低开销、控制最大并发数。
+线程池创建线程时，会将线程封装成工作线程 Worker，Worker 在执行完任务后还会循环获取工作队列中的任务来执行。
+将任务派发给线程池时，会出现以下几种情况
+a. 核心线程池未满，创建一个新的线程执行任务。
+b. 如果核心线程池已满，工作队列未满，将线程存储在工作队列。
+c. 如果工作队列已满，线程数小于最大线程数就创建一个新线程处理任务。
+d. 如果超过大小线程数，按照拒绝策略来处理任务。
+
+23. 线程池参数
+
+a. corePoolSize：常驻核心线程数。超过该值后如果线程空闲会被销毁。
+b. maximumPoolSize：线程池能够容纳同时执行的线程最大数。
+c. keepAliveTime：线程空闲时间，线程空闲时间达到该值后会被销毁，直到只剩下 corePoolSize 个线程为止，避免浪费内存资源。
+d. workQueue：工作队列。
+e. threadFactory：线程工厂，用来生产一组相同任务的线程。
+f. handler：拒绝策略。
+
+24. 线程池类型
+
+a. newFixedThreadPool，创建固定大小的线程池。
+b. newSingleThreadExecutor，使用单线程线程池。
+c. newCachedThreadPool，maximumPoolSize 设置为 Integer 最大值，工作完成后会回收工作线程
+d. newScheduledThreadPool：支持定期及周期性任务执行，不回收工作线程。
+
+25. 拒绝策略
+
+AbortPolicy：丢弃任务并抛出异常
+CallerRunsPolicy： 调用者自己处理
+DiscardOldestPolicy 抛弃队列里等待最久的任务并把当前任务加入队列
+DiscardPolicy 表示直接抛弃当前任务但不抛出异常。
+
+26. 线程池状态
+
+Running：能接受新提交的任务，也可以处理阻塞队列的任务。
+Shutdown：不再接受新提交的任务，但可以处理存量任务，线程池处于running时调用shutdown方法，会进入该状态。
+Stop：不接受新任务，不处理存量任务，调用shutdownnow进入该状态。
+Tidying：所有任务已经终止了，worker_count（有效线程数）为0。
+Terminated：线程池彻底终止。在tidying模式下调用terminated方法会进入该状态。
+
+27. 阻塞队列类型
+
+当阻塞队列为空时，从队列中获取元素的操作将会被阻塞，当阻塞队列满了，往队列添加元素的操作将会被阻塞。具体实现有：
+ArrayBlockingQueue：底层是由数组组成的有界阻塞队列。
+LinkedBlockingQueue：底层是由链表组成的有界阻塞队列。
+PriorityBlockingQueue：阻塞优先队列。
+DelayQueue：创建元素时可以指定多久才能从队列中获取当前元素
+SynchronousQueue：不存储元素的阻塞队列，每一个存储必须等待一个取出操作
+LinkedTransferQueue：与LinkedBlockingQueue相比多一个transfer方法，即如果当前有消费者正等待接收元素，可以把生产者传入的元素立刻传输给消费者。
+LinkedBlockingDeque：双向阻塞队列。
+
+28. ThreadLocal
+
+ThreadLocalMap使用ThreadLocal的弱引用作为key，如果一个ThreadLocal不存在外部强引用时，Key(ThreadLocal)势必会被GC回收，这样就会导致ThreadLocalMap中key为null， 而value还存在着强引用，只有thead线程退出以后,value的强引用链条才会断掉。
+当ThreadLocalMap的key为强引用回收ThreadLocal时，因为ThreadLocalMap还持有ThreadLocal的强引用，如果没有手动删除，ThreadLocal不会被回收，导致Entry内存泄漏。
+当ThreadLocalMap的key为弱引用回收ThreadLocal时，由于ThreadLocalMap持有ThreadLocal的弱引用，即使没有手动删除，ThreadLocal也会被回收。
+remove(): 调用WeakReference的clear方法清除对ThreadLocal的弱引用，再调用清理key为null的元素expungeStaleEntry()
+
+29. AQS
+
+AQS（AbstractQuenedSynchronizer）抽象的队列式同步器。
+AQS是将每一条请求共享资源的线程封装成一个锁队列的一个结点（Node），来实现锁的分配。
+AQS是用来构建锁或其他同步组件的基础框架，它使用一个state变量作为共享资源。如果线程获取资源失败，则进入同步队列等待；如果获取成功就执行临界区代码，释放资源时会通知同步队列中的等待线程。
+acquire()和release()用于获取锁和释放锁，它们在AQS中未实现，需要在子类中实现。
+重入 vs 不重入: state = 重入次数，0的时候锁没有用。对重入锁，大于0的时候检查获得锁的线程是不是当前线程，决定是否重入；对不重入锁，只有为0的时候才能用锁。
+公平 vs 非公平: 公平锁与非公平锁的lock()方法唯一的区别就在于公平锁在获取同步状态时多了一个限制条件：hasQueuedPredecessors()。该方法主要做一件事情：主要是判断当前线程是否位于同步队列中的第一个。如果是则返回true，否则返回false。
+共享 vs 独占: 把state变量“按位切割”切分成了两个部分，高16位表示读锁状态（读锁个数），低16位表示写锁状态（写锁个数）
+
+30. ReentrantLock
+
+ReentrantLock中核心作用的是Sync，继承自AQS，它有公平锁FairSync和非公平锁NonfairSync两个子类。ReentrantLock默认使用非公平锁，也可以通过构造器来显示的指定使用公平锁。实现了重入，独占，公平及非公平的特性。
+
+
+31. ReentrantReadWriteLock
+
+有两把锁：ReadLock和WriteLock
+ReadLock和WriteLock是靠内部类Sync实现的锁。Sync是AQS的一个子类，这种结构在ReentrantLock里面也存在。
+读锁是共享锁，写锁是独享锁。读锁的共享锁可保证并发读非常高效，而读写、写读、写写的过程互斥。
+只有等待其他读线程都释放了读锁，写锁才能被当前线程获取，而写锁一旦被获取，则其他读写线程的后续访问均被阻塞。
+如果其他线程已经获取了写锁，则当前线程获取读锁失败，进入等待状态。
+实现了重入，独占及共享，公平及非公平的特性。
+
+32. synchronized 
+
+代码块的同步是利用monitorenter和monitorexit这两个字节码指令。它们分别位于同步代码块的开始和结束位置。当jvm执行到monitorenter指令时，当前线程试图获取monitor对象的所有权，如果未加锁或者已经被当前线程所持有，就把锁的计数器+1；当执行monitorexit指令时，锁计数器-1；当锁计数器为0时，该锁就被释放了。如果获取monitor对象失败，该线程则会进入阻塞状态，直到其他线程释放锁。
+

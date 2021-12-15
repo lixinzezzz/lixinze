@@ -1,0 +1,78 @@
+组合两个表
+select p.FirstName, p.LastName, a.City, a.State from Person p left join Address a on p.PersonId = a.PersonId;
+第二高的薪水
+select (select distinct Salary from Employee order by Salary desc limit 1, 1) as SecondHighestSalary;
+第N高的薪水
+SELECT (SELECT DISTINCT salary FROM Employee ORDER BY salary DESC LIMIT N, 1);
+超过经理收入的员工
+select a.Name as 'Employee' from Employee a, Employee b where a.ManagerId = b.Id and a.Salary > b.Salary;
+查找重复的电子邮箱
+select distinct a.email from person a, person b where a.email = b.email and a.id != b.id;
+上升的温度
+select a.id from Weather a, Weather b where a.Temperature > b.Temperature and DATEDIFF(a.recordDate, b.recordDate) = 1;
+大的国家
+(select name, population, area from world where population >= 25000000) union (select name, population, area from world where area >= 3000000);
+超过5名学生的课
+select class from courses group by class having count(distinct student) >= 5;
+有趣的电影
+select id, movie, description, rating from cinema where description != 'boring' and id % 2 = 1 order by rating desc;
+
+
+数据库创建与使用：
+CREATE DATABASE test;
+USE test;
+
+创建表
+CREATE TABLE mytable (
+id INT NOT NULL AUTO_INCREMENT,
+col1 INT NOT NULL DEFAULT 1,
+col2 VARCHAR(45) NULL,
+col3 DATE NULL,
+PRIMARY KEY (id),
+UNIQUE KEY (col2));
+
+CREATE TABLE tb_dept2(
+id INT(11) PRIMARY KEY,
+name VARCHAR(22) UNIQUE,
+location VARCHAR(50));
+
+修改表
+    添加列
+    ALTER TABLE mytable ADD col CHAR(20);
+    删除列
+    ALTER TABLE mytable DROP COLUMN col;
+    删除表
+    DROP TABLE mytable;
+    创建索引
+    ALTER TABLE tablename ADD INDEX idxtitle (title)
+
+插入
+INSERT INTO mytable(col1, col2) VALUES(val1, val2);
+
+更新
+UPDATE mytable SET col = val WHERE id = 1;
+
+删除
+DELETE FROM mytable WHERE id = 1;
+
+清空表
+TRUNCATE TABLE mytable;
+
+DISTINCT
+相同值只会出现一次。它作用于所有列，也就是说所有列的值都相同才算相同。
+
+集合操作
+    Union 并集
+    Except 差集
+    InterSect 交集
+
+Group by
+SELECT col, COUNT(*) AS num FROM mytable WHERE col > 2 GROUP BY col HAVING num >= 2;
+
+LIMIT
+限制返回的行数。可以有两个参数，第一个参数为起始行，从 0 开始；第二个参数为返回的总行数。
+
+排序
+ASC: 升序(默认); DESC: 降序
+可以按多个列进行排序，并且为每个列指定不同的排序方式：
+SELECT * FROM mytable ORDER BY col1 DESC, col2 ASC;

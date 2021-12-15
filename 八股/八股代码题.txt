@@ -1,0 +1,248 @@
+大写转小写: c += 32
+int[] array = new int[]{10, 20, 30};
+长度:
+    容器: .size()
+    字符串: .length()
+    数组: .length
+integer:
+    Integer.MIN_VALUE
+    Integer.MAX_VALUE
+    Integer.valueOf()
+string: charAt() toUpperCase() toLowerCase() substring(4, 10) split("-") // . 、 $、 | 和 * 等转义字符，必须得加 \\
+    String.join("-", arrStr)
+    String.valueOf()
+stack: push, pop, peek
+arraylist: add, remove
+hashmap: put, get, keySet, containsKey
+hashset: add, remove, contains
+queue: add, poll, peek
+priorityqueue: add, poll, peek
+class Node implements Comparable<Node> {
+    public int val;
+    public int idx;
+    public int compareTo(Node another) {
+        if (this.val > another.val) {
+            return -1;
+        } else {
+            return 1;
+        }
+    }
+}
+Arrays.sort(events, new Comparator<int[]>(){
+    public int compare(int[] a, int[] b) {
+        if (a[0] < b[0]) return -1;
+        else return 1;
+    }
+});
+
+
+// 0. 快排
+def quicksort(arr, l, r):
+    if l < r:
+        m = partition(arr, l, r)
+        quicksort(arr, l, m - 1)
+        quicksort(arr, m + 1, r)
+
+def swap(arr, i, j):
+    temp = arr[i]
+    arr[i] = arr[j]
+    arr[j] = temp
+
+def partition(arr, l, r):
+    i, j = l, r
+    key = arr[l]
+    while i < j:
+        while i < j and key <= arr[j]:
+            j -= 1
+        while i < j and key >= arr[i]:
+            i += 1
+        if i < j:
+            swap(arr, i, j)
+    swap(arr, l, i)
+    return i
+
+
+// 1. 交替打印
+class FooBar {
+    private int n;
+    private volatile boolean state = false;
+
+    public FooBar(int n) {
+        this.n = n;
+    }
+
+    public void foo(Runnable printFoo) throws InterruptedException {
+        for (int i = 0; i < n; i++) {
+            while(this.state == true)
+            {
+                Thread.yield();
+            }
+            printFoo.run();
+            this.state = true;
+        }
+    }
+
+    public void bar(Runnable printBar) throws InterruptedException {
+        for (int i = 0; i < n; i++) {
+            while(this.state == false)
+            {
+                Thread.yield();
+            }
+            printBar.run();
+            this.state = false;
+        }
+    }
+}
+
+// 2. 死锁例子
+public class Deadlock
+{
+    public volatile boolean x = false;
+    public volatile boolean y = false;
+    public String a = new String("a");
+    public String b = new String("b");
+    public void func1()
+    {
+        synchronized(this.a)
+        {
+            x = true;
+            while(y == false)
+            {
+                Thread.yield();
+            }
+            synchronized(this.b)
+            {
+            }
+        }
+    }
+
+    public void func2()
+    {
+        synchronized(this.b)
+        {
+            y = true;
+            while(x == false)
+            {
+                Thread.yield();
+            }
+            synchronized(this.a)
+            {
+            }
+        }
+    }
+
+    public static void main(String[] args)
+    {
+        Deadlock dl = new Deadlock();
+        Thread thd1 = new Thread(() -> {dl.func1();});
+        Thread thd2 = new Thread(() -> {dl.func2();});
+        thd1.start();
+        thd2.start();
+    }
+}
+
+// 3. 单例模式
+public class Singleton 
+{
+    private volatile static Singleton uniqueInstance;
+    private Singleton() {}
+    public static Singleton getUniqueInstance() 
+    {
+        if (uniqueInstance == null) 
+        {
+            synchronized (Singleton.class) 
+            {
+                if (uniqueInstance == null) 
+                {
+                    uniqueInstance = new Singleton();
+                }
+            }
+        }
+        return uniqueInstance;
+    }
+}
+
+// 4. java动态代理
+public class DynamicProxy implements InvocationHandler {//实现InvocationHandler接口
+    private Object obj;//被代理的对象
+
+    public DynamicProxy(Object obj) {
+        this.obj = obj;
+    }
+
+    //重写invoke()方法
+    @Override
+    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+        Object result = method.invoke(obj, args);//调用被代理的对象的方法
+        return result;
+    }
+
+    public void test() {
+        People domestic = new Domestic();                                 //创建国内购买人
+        DynamicProxy proxy = new DynamicProxy(domestic);                  //创建动态代理
+        ClassLoader classLoader = domestic.getClass().getClassLoader();   //获取ClassLoader
+        People oversea = (People) Proxy.newProxyInstance(classLoader, new Class[]{People.class}, proxy); //通过 Proxy 创建海外代购实例 ，实际上通过反射来实现的。
+        oversea.buy();//调用海外代购的buy()
+    }
+}
+// 利用Proxy类的newProxyInstance方法创建了一个动态代理对象；所有被代理执行的方法，都是通过在InvocationHandler中的invoke方法调用的
+// 动态代理的优势在于可以很方便的对代理类的函数进行统一的处理，而不用修改每个代理类中的方法。
+
+// 5. 生产者-消费者
+class Stock {
+    private String name;
+    private boolean hasComputer = false;
+
+    public synchronized void putOne(String name) {
+        while (hasComputer) {
+            this.wait();
+        }
+        this.hasComputer = true;
+        this.notifyAll();
+    }
+
+    public synchronized void takeOne() {
+        while (!hasComputer) {
+            this.wait();
+        }
+        this.hasComputer = false;
+        this.notifyAll();
+    }
+}
+
+public static void main(String[] args) {
+    Stock computer = new Stock();
+    Thread p1 = new Thread(new Runnable() {
+        public void run() {
+            while (true) {
+                computer.putOne("Dell");
+            }
+        }
+    });
+    Thread p2 = new Thread(new Runnable() {
+        public void run() {
+            while (true) {
+                computer.putOne("Mac");
+            }
+        }
+    });
+    
+    Thread c1 = new Thread(new Runnable() {
+        public void run() {
+            while (true) {
+                computer.takeOne();
+            }
+        }
+    });
+    Thread c2 = new Thread(new Runnable() {
+        public void run() {
+            while (true) {
+                computer.takeOne();
+            }
+        }
+    });
+    p1.start();
+    p2.start();
+    c1.start();
+    c2.start();
+}

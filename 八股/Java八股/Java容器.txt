@@ -1,0 +1,40 @@
+Java容器
+
+1. Collection vs Map
+容器主要包括 Collection 和 Map 两种，Collection 存储着对象的集合，而 Map 存储着键值对（两个对象）的映射表。
+Collection: 分为Set，List和Queue
+Set包括TreeSet，HashSet等；
+List包括ArrayList，Vector，LinkedList等；
+Queue包括LinkedList，PriorityQueue等；
+Map: 包括TreeMap，HashMap等。
+
+2. ArrayList vs Vector vs CopyOnWriteArrayList
+a. ArrayList:
+数组的默认大小为 10。每次扩容变为1.5倍，需要调用Arrays.copyOf()把原数组整个复制到新数组中。
+b. Vector:
+使用了 synchronized 进行同步,每次扩容变为2倍
+c. CopyOnWriteArrayList
+写操作在一个复制的数组上进行，读操作还是在原始数组中进行，读写分离，互不影响。
+写操作前需要加锁，防止并发写入时导致写入数据丢失；写操作后需要把原始数组指向新的复制数组。
+缺点是内存占用高和数据不一致（读操作不能读取实时性的数据），不适合内存敏感以及对实时性要求很高的场景。
+
+3. HashMap vs ConcurrentHashMap vs HashTable
+a. HashMap:
+HashMap内部包含了一个 Entry 类型的数组 table。Entry是一个存储着键值对的链表节点。数组中的每个位置被当成一个桶，一个桶存放一个链表。HashMap 使用拉链法来解决冲突，同一个链表中存放哈希值和散列桶取模运算结果相同的 Entry。
+put时，JDK1.7采用头插，JDK1.8采用尾插，并在链表长度达到8时转成红黑树。
+当size大于等于threshold就必须进行扩容操作，令capacity为原来的2倍。扩容需要重新计算下标，如果从16扩到32，如果某元素哈希值如果在第5位上为0，那么取模得到的结果和之前一样；如果为1，那么得到的结果为原来的结果加16。
+默认大小为 16，装载因子默认为0.75。
+
+b. ConcurrentHashMap:
+JDK1.7中ConcurrentHashMap 采用了分段锁（Segment），每个分段锁维护着几个桶（HashEntry），多个线程可以同时访问不同分段锁上的桶，从而使其并发度更高（并发度就是 Segment 的个数），默认的并发级别为 16。Segment 继承自 ReentrantLock。
+JDK 1.8 使用了 CAS 操作来支持更高的并发度，在 CAS 操作失败时使用锁 synchronized。
+
+c. HashTable: 
+HashTable 使用 synchronized 来进行同步。
+HashTable不转红黑树。
+HashTable不允许有null键和null值。
+HashTable是直接使用对象的hashCode。
+
+4. Fail-Fast
+modCount 用来记录 ArrayList 结构发生变化的次数。结构发生变化是指添加或者删除至少一个元素的所有操作，或者是调整内部数组的大小，仅仅只是设置元素的值不算结构发生变化。
+在进行序列化或者迭代等操作时，需要比较操作前后 modCount 是否改变，如果改变了需要抛出ConcurrentModificationException。

@@ -1,0 +1,30 @@
+
+堆相关
+    最大堆：-Xmx
+    最小堆：-Xms
+    指定新生代的内存：-Xmn
+    新生代和老年代的比值：-XX:NewRatio
+    Survivor区与Eden区的比值：-XX:SurvivorRatio
+    对象大小临界值：-XX:PretenureSizeThreshold
+    对象年龄临界值：-XX:MaxTenuringThreshold
+
+    官方推荐：
+    新生代占堆的3/8
+    幸存代占新生代的1/10
+
+栈相关
+    栈大小：-Xss
+
+CMS相关
+    CMS触发参数：-XX:CMSInitiatingOccupancyFraction
+    JDK6默认92%，多ConcurrentModeFailure可以适当降低
+    CMS内存碎片合并设置：-XX:+UseCMSCompactAtFullCollection
+    默认开启，JDK9开始废弃
+    -XX:CMSFullGCsBeforeCompaction
+    要求CMS在执行若干次不整理空间的Full GC后，下一次Full GC前整理碎片，默认为0，JDK9开始废弃
+
+G1相关
+    -XX:G1HeapRegionSize
+    收集停顿时间：-XX:MaxGCPauseMillis
+    默认200ms
+

@@ -1,0 +1,53 @@
+1. 文件操作
+
+File 类可以用于表示文件和目录的信息，但是它不表示文件的内容。
+
+2. 字节操作
+
+InputStream, OutputStream
+
+3. 字符操作
+
+InputStreamReader, OutputStreamReader
+
+4. 对象操作
+
+ObjectOutputStream.writeObject(), ObjectInputStream.readObject()
+实现Serializable接口:
+    transient: 可以使一些属性不会被序列化。
+    SerialVersionUid: 目的是序列化对象版本控制，有关各版本反序列化时是否兼容。
+
+5. NIO
+
+通常来说NIO中的所有IO都是从Channel开始的。需要创建一个Buffer，Buffer从Channel中读取数据和写入数据。
+Channel包括FileChannel, DatagramChannel, SocketChannel, ServerSocketChannel。
+Buffer切换读写操作需要flip()，可通过clear()清空。
+limit: 往Buffer中写的时候，等于capacity；从Buffer中读的时候，表示数据的量。
+position: 往Buffer中写的时候，表示下一个位置；从Buffer中读的时候，表示读的位置，读完会加1。
+NIO实现了IO多路复用中的 Reactor 模型，一个线程 Thread 使用一个选择器 Selector 通过轮询的方式去监听多个通道Channel上的事件，从而让一个线程就可以处理多个事件。
+只有套接字Channel才能配置为非阻塞，而FileChannel不能。
+创建选择器
+Selector selector = Selector.open();
+将通道注册到选择器上
+ServerSocketChannel ssChannel = ServerSocketChannel.open();
+ssChannel.configureBlocking(false);
+ssChannel.register(selector, SelectionKey.OP_ACCEPT);
+监听事件
+int num = selector.select();
+获取到达的事件
+Set<SelectionKey> keys = selector.selectedKeys();
+Iterator<SelectionKey> keyIterator = keys.iterator();
+while (keyIterator.hasNext()) {
+    SelectionKey key = keyIterator.next();
+    if (key.isAcceptable()) {
+    } else if (key.isReadable()) {
+    }
+    keyIterator.remove();
+}
+实现的多路复用模型因平台而异，每个平台都有多种实现，Linux上有实现epoll，默认使用epoll，使用lt
+
+6. 零拷贝: 
+
+不需要将文件内容拷贝到用户空间（User Space）而直接在内核空间（Kernel Space）中操作并传输的方式。
+FileChannel.map()采用了操作系统中的内存映射方式，底层就是调用Linux mmap实现的。应用程序调用mmap，磁盘上的数据会通过DMA拷贝到内核缓冲区，接着操作系统会把这段内核缓冲区与应用程序共享，这样就不需要把内核缓冲区的内容往用户空间拷贝。应用程序再调用write,操作系统直接将内核缓冲区的内容拷贝到socket缓冲区中，这一切都发生在内核态，最后，socket缓冲区再把数据发到网卡去。减少了一次拷贝。
+FileChannel.transferTo()的实现方式就是通过系统调用sendfile() 。第一次使用 DMA 从文件拷贝到内核缓冲区，第二次从内核缓冲区将数据拷贝到网络。避免了从内核缓冲区拷贝到socket缓冲区，一共减少了两次拷贝。
